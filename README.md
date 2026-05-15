@@ -57,8 +57,12 @@ More detail is available in [docs/architecture.md](docs/architecture.md).
 |   |-- .env.example
 |   `-- package.json
 |-- screenshots/
-|   |-- dashboard-placeholder.svg
-|   `-- pipeline-placeholder.svg
+|   |-- git-branches.png
+|   |-- git-history.png
+|   |-- git-remote.png
+|   |-- git-status.png
+|   |-- project-files.png
+|   `-- repository-tree.png
 |-- terraform/
 |   |-- main.tf
 |   |-- variables.tf
