@@ -207,6 +207,9 @@ VITE_API_BASE_URL=/api
 
   ## Screenshots
 
+### Application Dashboard
+![Application Dashboard](screenshots/app-dashboard.png)
+
 ### Local Development Environment
 ![Local Development Environment](screenshots/local-dev-environment.png)
 
