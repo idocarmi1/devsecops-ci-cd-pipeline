@@ -12,6 +12,7 @@ flowchart LR
   frontend --> backend["Backend Container<br/>Express API"]
   backend --> health["/api/health"]
   backend --> message["/api/message"]
+  backend --> incident["/api/analyze-incident<br/>Mock AI Incident Assistant"]
   github["GitHub Repository"] --> jenkins["Jenkins Pipeline"]
   jenkins --> docker["Docker Images"]
   terraform["Terraform"] --> ec2["AWS EC2 + Security Group"]
@@ -37,6 +38,7 @@ More detail is available in [docs/architecture.md](docs/architecture.md).
 |-- backend/
 |   |-- src/
 |   |   |-- app.js
+|   |   |-- incidentAnalyzer.js
 |   |   `-- server.js
 |   |-- test/
 |   |   `-- api.test.js
@@ -51,6 +53,7 @@ More detail is available in [docs/architecture.md](docs/architecture.md).
 |   |   |   `-- api.js
 |   |   |-- App.jsx
 |   |   |-- content.js
+|   |   |-- incidentAssistant.js
 |   |   `-- styles.css
 |   |-- Dockerfile
 |   |-- nginx.conf
@@ -80,10 +83,42 @@ More detail is available in [docs/architecture.md](docs/architecture.md).
 - API health check displayed in the frontend
 - Express `/api/health` endpoint with service metadata
 - Express `/api/message` endpoint with portfolio context
+- Express `/api/analyze-incident` endpoint for mock AI incident triage
+- React AI Incident Assistant module with textarea input and structured analysis cards
 - Environment variable support for frontend and backend
 - Dockerized frontend and backend services
 - Jenkins pipeline with Install, Test, Build, Docker Build, and Deploy Simulation stages
 - Terraform EC2 example with security group, variables, and outputs
+
+## AI Incident Assistant
+
+The dashboard includes an AI Incident Assistant module for NOC and DevOps workflows. It accepts alert text or incident logs, sends them to `POST /api/analyze-incident`, and displays a structured response with summary, severity, possible root cause, recommended checks, and an escalation message.
+
+This is currently a safe mock AI workflow. It does not call OpenAI, does not require an API key, and does not store secrets. The backend analyzer uses deterministic keyword-based logic so the portfolio can demonstrate the intended AI automation flow while remaining easy to run locally. A future production version could replace the mock analyzer with an OpenAI API integration using environment variables for configuration.
+
+Example request:
+
+```json
+{
+  "incidentText": "Critical outage detected. Checkout API returns 5xx errors for all users after the latest Docker image deployment."
+}
+```
+
+Example response:
+
+```json
+{
+  "summary": "Incident signal detected: Critical outage detected",
+  "severity": "Critical",
+  "possibleRootCause": "A recent deployment or runtime image change may have introduced the incident.",
+  "recommendedChecks": [
+    "Check service health endpoints and confirm the scope of impacted users.",
+    "Review recent Jenkins deployments, image tags, and configuration changes.",
+    "Inspect container logs and host metrics for errors, saturation, or restarts."
+  ],
+  "escalationMessage": "NOC escalation (Critical): Review the incident context, validate current impact, and notify the on-call DevOps owner with logs, metrics, and recent deployment details."
+}
+```
 
 ## Local Setup
 
@@ -119,6 +154,7 @@ npm test
 ```
 
 The backend tests use Node's built-in test runner and call the Express app on a random local port. The frontend test verifies that dashboard content reflects the intended CI/CD lifecycle.
+Backend tests also cover the mock AI incident analysis endpoint, including validation for missing or too-short incident text. Frontend tests include simple validation coverage for the AI Incident Assistant input.
 
 ## Docker Instructions
 
@@ -193,6 +229,7 @@ VITE_API_BASE_URL=/api
 - Docker images use separate frontend and backend build contexts.
 - Terraform keeps infrastructure values configurable through variables.
 - Jenkins separates install, test, build, image creation, and deployment concerns.
+- The AI Incident Assistant uses a mock analyzer only and does not require real API keys.
 
 ## Future Improvements
 
@@ -203,6 +240,7 @@ VITE_API_BASE_URL=/api
 - Add Trivy or Grype container scanning.
 - Add SonarQube or ESLint security scanning.
 - Add CloudWatch logs and alarms.
+- Replace the mock AI incident analyzer with an OpenAI API-backed workflow.
 - Add GitHub Actions as an alternative CI pipeline.
 
   ## Screenshots
@@ -230,4 +268,3 @@ VITE_API_BASE_URL=/api
 
 ### Git Branches
 ![Git Branches](screenshots/git-branches.png)
-

@@ -1,6 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
+import { analyzeIncident, validateIncidentText } from './incidentAnalyzer.js';
 
 const app = express();
 const allowedOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
@@ -31,11 +32,35 @@ app.get('/api/message', (_request, response) => {
   });
 });
 
+app.post('/api/analyze-incident', (request, response, next) => {
+  try {
+    const validationError = validateIncidentText(request.body?.incidentText);
+
+    if (validationError) {
+      response.status(400).json({ error: validationError });
+      return;
+    }
+
+    response.json(analyzeIncident(request.body.incidentText));
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.use((_request, response) => {
   response.status(404).json({
     error: 'Not found',
   });
 });
 
-export default app;
+app.use((error, _request, response, next) => {
+  void next;
+  console.error('API error:', error);
+  const statusCode = error.status || error.statusCode || 500;
 
+  response.status(statusCode).json({
+    error: statusCode === 500 ? 'Internal server error' : 'Invalid request',
+  });
+});
+
+export default app;

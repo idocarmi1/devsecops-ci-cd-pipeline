@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import { pipelineStages, technologies } from './content.js';
-import { getHealthStatus, getPortfolioMessage } from './services/api.js';
+import {
+  emptyIncidentAnalysis,
+  validateIncidentText,
+} from './incidentAssistant.js';
+import { analyzeIncident, getHealthStatus, getPortfolioMessage } from './services/api.js';
 import './styles.css';
 
 const initialState = {
@@ -10,8 +14,16 @@ const initialState = {
   message: null,
 };
 
+const initialIncidentState = {
+  incidentText: '',
+  loading: false,
+  error: '',
+  analysis: emptyIncidentAnalysis,
+};
+
 export default function App() {
   const [apiState, setApiState] = useState(initialState);
+  const [incidentState, setIncidentState] = useState(initialIncidentState);
 
   useEffect(() => {
     let mounted = true;
@@ -41,6 +53,47 @@ export default function App() {
     : apiState.error
       ? 'API unavailable'
       : 'API connected';
+
+  async function handleIncidentSubmit(event) {
+    event.preventDefault();
+
+    const validationError = validateIncidentText(incidentState.incidentText);
+    if (validationError) {
+      setIncidentState((currentState) => ({
+        ...currentState,
+        error: validationError,
+        analysis: emptyIncidentAnalysis,
+      }));
+      return;
+    }
+
+    setIncidentState((currentState) => ({ ...currentState, loading: true, error: '' }));
+
+    try {
+      const analysis = await analyzeIncident(incidentState.incidentText);
+      setIncidentState((currentState) => ({
+        ...currentState,
+        loading: false,
+        error: '',
+        analysis,
+      }));
+    } catch (error) {
+      setIncidentState((currentState) => ({
+        ...currentState,
+        loading: false,
+        error: error.message,
+        analysis: emptyIncidentAnalysis,
+      }));
+    }
+  }
+
+  function handleIncidentTextChange(event) {
+    setIncidentState((currentState) => ({
+      ...currentState,
+      incidentText: event.target.value,
+      error: '',
+    }));
+  }
 
   return (
     <main className="app-shell">
@@ -111,6 +164,73 @@ export default function App() {
         </article>
       </section>
 
+      <section className="incident-assistant" aria-labelledby="incident-assistant-title">
+        <div className="assistant-intro">
+          <p className="eyebrow">AI automation workflow</p>
+          <h2 id="incident-assistant-title">AI Incident Assistant</h2>
+          <p>
+            Structured triage output for NOC alerts, service logs, deployment incidents, and
+            first-response escalation.
+          </p>
+        </div>
+
+        <form className="assistant-form" onSubmit={handleIncidentSubmit}>
+          <label htmlFor="incident-text">Incident logs or alert text</label>
+          <textarea
+            id="incident-text"
+            value={incidentState.incidentText}
+            onChange={handleIncidentTextChange}
+            placeholder="Example: Critical outage detected. Checkout API returns 5xx errors after the latest deployment, with elevated latency and failed health checks."
+            rows={7}
+          />
+          <div className="assistant-actions">
+            <button type="submit" disabled={incidentState.loading}>
+              {incidentState.loading ? 'Analyzing...' : 'Analyze Incident'}
+            </button>
+            {incidentState.error && <p role="alert">{incidentState.error}</p>}
+          </div>
+        </form>
+
+        <div className="analysis-grid" aria-live="polite">
+          <article className="analysis-card">
+            <span>Summary</span>
+            <p>{incidentState.analysis.summary || 'Analysis summary will appear here.'}</p>
+          </article>
+          <article className="analysis-card">
+            <span>Severity</span>
+            <strong className={`severity severity--${incidentState.analysis.severity || 'pending'}`}>
+              {incidentState.analysis.severity || 'Pending'}
+            </strong>
+          </article>
+          <article className="analysis-card">
+            <span>Possible Root Cause</span>
+            <p>
+              {incidentState.analysis.possibleRootCause ||
+                'Potential root cause guidance will appear after analysis.'}
+            </p>
+          </article>
+          <article className="analysis-card analysis-card--wide">
+            <span>Recommended Checks</span>
+            {incidentState.analysis.recommendedChecks.length > 0 ? (
+              <ul>
+                {incidentState.analysis.recommendedChecks.map((check) => (
+                  <li key={check}>{check}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>Operational checks will appear after analysis.</p>
+            )}
+          </article>
+          <article className="analysis-card analysis-card--wide">
+            <span>Escalation Message</span>
+            <p>
+              {incidentState.analysis.escalationMessage ||
+                'A ready-to-send escalation note will appear after analysis.'}
+            </p>
+          </article>
+        </div>
+      </section>
+
       <section className="feature-grid" aria-label="Included project pieces">
         <article>
           <span>01</span>
@@ -131,6 +251,11 @@ export default function App() {
           <span>04</span>
           <h2>DevSecOps</h2>
           <p>Security group rules, health checks, CI stages, and deploy simulation included.</p>
+        </article>
+        <article>
+          <span>05</span>
+          <h2>AI Ops</h2>
+          <p>Mock incident assistant workflow prepared for future OpenAI API integration.</p>
         </article>
       </section>
     </main>
