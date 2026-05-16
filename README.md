@@ -248,6 +248,9 @@ VITE_API_BASE_URL=/api
 ### Application Dashboard
 ![Application Dashboard](screenshots/app-dashboard.png)
 
+### AI Incident Assistant
+![AI Incident Assistant](screenshots/ai-incident-assistant.png)
+
 ### Local Development Environment
 ![Local Development Environment](screenshots/local-dev-environment.png)
 
