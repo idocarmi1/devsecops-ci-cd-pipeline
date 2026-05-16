@@ -57,8 +57,12 @@ More detail is available in [docs/architecture.md](docs/architecture.md).
 |   |-- .env.example
 |   `-- package.json
 |-- screenshots/
-|   |-- dashboard-placeholder.svg
-|   `-- pipeline-placeholder.svg
+|   |-- git-branches.png
+|   |-- git-history.png
+|   |-- git-remote.png
+|   |-- git-status.png
+|   |-- project-files.png
+|   `-- repository-tree.png
 |-- terraform/
 |   |-- main.tf
 |   |-- variables.tf
@@ -165,14 +169,6 @@ terraform apply
 
 Edit `terraform.tfvars` before applying. Use your existing AWS key pair name and restrict `ssh_cidr` to your public IP with `/32`.
 
-## Screenshots
-
-Placeholder images are included in [screenshots](screenshots):
-
-- `dashboard-placeholder.svg`
-- `pipeline-placeholder.svg`
-
-Replace them with real screenshots after running the frontend and Jenkins pipeline.
 
 ## Environment Variables
 
@@ -208,4 +204,24 @@ VITE_API_BASE_URL=/api
 - Add SonarQube or ESLint security scanning.
 - Add CloudWatch logs and alarms.
 - Add GitHub Actions as an alternative CI pipeline.
+
+  ## Screenshots
+
+### Repository Structure
+![Repository Structure](screenshots/repository-tree.png)
+
+### Git Status
+![Git Status](screenshots/git-status.png)
+
+### Git History
+![Git History](screenshots/git-history.png)
+
+### Project Files
+![Project Files](screenshots/project-files.png)
+
+### Git Remote
+![Git Remote](screenshots/git-remote.png)
+
+### Git Branches
+![Git Branches](screenshots/git-branches.png)
 
